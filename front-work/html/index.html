@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InfluenceON - Registration</title>
+    <link rel="stylesheet" href="../css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="form-container">
+        <h1 class="logo">InfluenceON</h1>
+
+        <div class="steps">
+          <div class="step active" data-step="1">Account</div>
+          <div class="step" data-step="2">Profile</div>
+        </div>
+
+        <!-- Login Form -->
+        <form
+          id="loginForm"
+          class="hidden"
+          action="../php/login.php"
+          method="POST"
+        >
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input
+              type="email"
+              id="loginEmail"
+              name="email"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="password-input">
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                placeholder="Enter your password"
+                required
+              />
+              <button type="button" class="toggle-password">
+                <span class="eye-icon">👁️</span>
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn primary-btn">Sign In</button>
+
+          <p class="signup-link">
+            Don't have an account? <a href="#" id="showSignup">Sign up</a>
+          </p>
+        </form>
+
+        <!-- Registration Form -->
+        <form id="registrationForm" action="../php/register.php" method="POST">
+          <!-- Step 1: Account -->
+          <div class="form-step" id="step1">
+            <div class="role-selector">
+              <button
+                type="button"
+                class="role-btn active"
+                data-role="business"
+              >
+                Business
+              </button>
+              <button type="button" class="role-btn" data-role="influencer">
+                Influencer
+              </button>
+              <input
+                type="hidden"
+                name="role"
+                value="business"
+                id="roleInput"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter your email"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="password-input">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Create password"
+                  required
+                />
+                <button type="button" class="toggle-password">
+                  <span class="eye-icon">👁️</span>
+                </button>
+              </div>
+              <small>Must be at least 8 characters</small>
+            </div>
+
+            <button type="button" class="btn primary-btn" id="nextStep">
+              Create Account
+            </button>
+
+            <div class="divider">Or continue with</div>
+
+            <div class="social-buttons">
+              <button type="button" class="social-btn google">
+                <span>Google</span>
+              </button>
+              <button type="button" class="social-btn facebook">
+                <span>Facebook</span>
+              </button>
+            </div>
+
+            <p class="signin-link">
+              Already have an account? <a href="#">Sign in</a>
+            </p>
+          </div>
+
+          <!-- Step 2: Profile -->
+          <div class="form-step hidden" id="step2">
+            <!-- Business Form Fields -->
+            <div id="businessFields">
+              <div class="form-group">
+                <label for="businessName">Business Name</label>
+                <input type="text" id="businessName" name="businessName" />
+              </div>
+              <div class="form-group">
+                <label for="industry">Industry</label>
+                <input type="text" id="industry" name="industry" />
+              </div>
+              <div class="form-group">
+                <label for="website">Website (Optional)</label>
+                <input type="url" id="website" name="website" />
+              </div>
+              <div class="form-group">
+                <label for="businessContact">Business Contact Info</label>
+                <input
+                  type="text"
+                  id="businessContact"
+                  name="businessContact"
+                />
+              </div>
+            </div>
+
+            <!-- Influencer Form Fields -->
+            <div id="influencerFields" class="hidden">
+              <div class="form-group">
+                <label>Social Media Links</label>
+                <input
+                  type="url"
+                  name="socialLinks[instagram]"
+                  placeholder="Instagram URL"
+                />
+                <input
+                  type="url"
+                  name="socialLinks[tiktok]"
+                  placeholder="TikTok URL"
+                />
+                <input
+                  type="url"
+                  name="socialLinks[youtube]"
+                  placeholder="YouTube URL"
+                />
+              </div>
+              <div class="form-group">
+                <label>Areas of Expertise</label>
+                <div class="expertise-options">
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="expertise[]" value="fashion" />
+                    Fashion
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="expertise[]" value="food" />
+                    Food
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="expertise[]" value="fitness" />
+                    Fitness
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="expertise[]" value="tech" />
+                    Tech
+                  </label>
+                  <label class="checkbox-container">
+                    <input type="checkbox" name="expertise[]" value="travel" />
+                    Travel
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" id="age" name="age" />
+              </div>
+              <div class="form-group">
+                <label for="bio">Short Bio</label>
+                <textarea id="bio" name="bio" rows="4"></textarea>
+              </div>
+            </div>
+
+            <div class="form-buttons">
+              <button type="button" class="btn secondary-btn" id="prevStep">
+                Back
+              </button>
+              <button type="submit" class="btn primary-btn">
+                Complete Registration
+              </button>
+            </div>
+          </div>
+        </form>
+
+        <p class="terms">
+          By signing up, you agree to our <a href="#">Terms</a> and
+          <a href="#">Privacy Policy</a>
+        </p>
+      </div>
+    </div>
+    <script src="../js/script.js"></script>
+  </body>
+</html>
