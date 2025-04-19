@@ -1,7 +1,6 @@
 {
     "require": {
         "google/apiclient": "^2.18",
-        "sendinblue/api-v3-sdk": "^8.4",
         "phpmailer/phpmailer": "^6.9"
     }
 }

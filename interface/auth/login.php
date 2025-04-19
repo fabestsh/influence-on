@@ -6,7 +6,7 @@ $client = new Google\Client;
 
 $client->setClientId('7000529869-s2fo1ku82mp82sit49dj79pdaolr2mr6.apps.googleusercontent.com');
 $client->setClientSecret('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');
-$client->setRedirectUri('http://localhost/Influencers/redirect.php');
+$client->setRedirectUri('http://localhost/influence-on/redirect.php');
 
 $client->addScope("email");
 $client->addScope("profile");
