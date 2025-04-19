@@ -6,48 +6,48 @@ require __DIR__ . '/../../../vendor/autoload.php';
 require __DIR__ . '/../../../db/db_connection.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+  $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
 
-    if (!$email) {
-        die("Invalid email address.");
-    }
+  if (!$email) {
+    die("Invalid email address.");
+  }
 
-    $stmt = $pdo->prepare("SELECT name, email FROM users WHERE email = :email LIMIT 1");
-    $stmt->execute(['email' => $email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+  $stmt = $pdo->prepare("SELECT name, email FROM users WHERE email = :email LIMIT 1");
+  $stmt->execute(['email' => $email]);
+  $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$user) {
-        die("No user found with this email.");
-    }
+  if (!$user) {
+    die("No user found with this email.");
+  }
 
-    $resetToken = bin2hex(random_bytes(32));
-    $resetLink = "http://localhost/Influencers/interface/auth/reset_password.php?token=$resetToken";
+  $resetToken = bin2hex(random_bytes(32));
+  $resetLink = "http://localhost/influence-on/interface/auth/reset_password.php?token=$resetToken";
 
-    $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, created_at) VALUES (:email, :token, NOW())");
-    $stmt->execute([
-        'email' => $email,
-        'token' => hash('sha256', $resetToken)
-    ]);
+  $stmt = $pdo->prepare("INSERT INTO password_resets (email, token, created_at) VALUES (:email, :token, NOW())");
+  $stmt->execute([
+    'email' => $email,
+    'token' => hash('sha256', $resetToken)
+  ]);
 
-    $mail = new PHPMailer(true);
+  $mail = new PHPMailer(true);
 
-    try {
-        $mail->isSMTP();
-        $mail->Host = 'smtp-relay.brevo.com';
-        $mail->SMTPAuth = true;
-        $mail->Username = '8ae9ef001@smtp-brevo.com';
-        $mail->Password = 'g7cYbPmVyJOhBvD6';
-        $mail->SMTPSecure = 'tls';
-        $mail->Port = 587;
+  try {
+    $mail->isSMTP();
+    $mail->Host = 'smtp-relay.brevo.com';
+    $mail->SMTPAuth = true;
+    $mail->Username = '8ae9ef001@smtp-brevo.com';
+    $mail->Password = 'g7cYbPmVyJOhBvD6';
+    $mail->SMTPSecure = 'tls';
+    $mail->Port = 587;
 
-        $mail->setFrom('klevismurati21@gmail.com', 'InfluenceON');
-        $mail->addAddress($user['email'], $user['name']);
+    $mail->setFrom('klevismurati21@gmail.com', 'InfluenceON');
+    $mail->addAddress($user['email'], $user['name']);
 
-        $mail->isHTML(true);
-        $mail->Subject = 'Reset your password';
-        $mail->CharSet = 'UTF-8'; // Set character encoding
+    $mail->isHTML(true);
+    $mail->Subject = 'Reset your password';
+    $mail->CharSet = 'UTF-8'; // Set character encoding
 
-        $mail->Body = "
+    $mail->Body = "
 <!DOCTYPE html>
 <html>
   <head>
@@ -78,10 +78,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </html>
 ";
 
-        $mail->send();
-        header("Location: ../email_sent.php");
-        exit;
-    } catch (Exception $e) {
-        echo "Mailer Error: " . $mail->ErrorInfo;
-    }
+    $mail->send();
+    header("Location: ../email_sent.php");
+    exit;
+  } catch (Exception $e) {
+    echo "Mailer Error: " . $mail->ErrorInfo;
+  }
 }
