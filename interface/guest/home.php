@@ -15,30 +15,32 @@
           <span>Influence</span><span class="logo-on">ON</span>
         </div>
         <ul class="nav-links">
-          <li><a href="#">Find Influencers</a></li>
-          <li><a href="#">For Businesses</a></li>
-          <li><a href="#">For Influencers</a></li>
-          <li><a href="#">How it Works</a></li>
+          <li><a href="home.php">Home</a></li>
+          <li>
+            <a href="for-businesses.php" class="active">For Businesses</a>
+          </li>
+          <li><a href="for-influencers.php">For Influencers</a></li>
+          <li><a href="about-us.php">About Us</a></li>
         </ul>
         <div class="nav-actions">
-          <a href="../auth/login.php" class="nav-login">Sign In</a>
-          <a href="../auth/register.php" class="nav-register">Get Started</a>
+          <a href="#" class="nav-login">Sign In</a>
+          <a href="#" class="nav-register">Get Started</a>
         </div>
         <button class="mobile-nav-toggle" aria-label="Open navigation menu">
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
-          <span class="hamburger-bar"></span>
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
         <div class="mobile-nav">
           <ul class="nav-links">
-            <li><a href="#">Find Influencers</a></li>
-            <li><a href="#">For Businesses</a></li>
-            <li><a href="#">For Influencers</a></li>
-            <li><a href="#">How it Works</a></li>
+            <li><a href="home.php" class="active">Home</a></li>
+            <li><a href="for-businesses.php">For Businesses</a></li>
+            <li><a href="for-influencers.php">For Influencers</a></li>
+            <li><a href="about-us.php">About Us</a></li>
           </ul>
           <div class="nav-actions">
-            <a href="#" class="nav-login">Sign In</a>
-            <a href="#" class="nav-register">Get Started</a>
+            <a href="../auth/login.php" class="nav-login">Sign In</a>
+            <a href="../auth/register.php" class="nav-register">Get Started</a>
           </div>
         </div>
         <div class="mobile-nav-overlay"></div>
