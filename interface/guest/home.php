@@ -23,7 +23,7 @@
           <li><a href="about-us.php">About Us</a></li>
         </ul>
         <div class="nav-actions">
-          <a href="#" class="nav-login">Sign In</a>
+          <a href="../auth/login.php" class="nav-login">Sign In</a>
           <a href="#" class="nav-register">Get Started</a>
         </div>
         <button class="mobile-nav-toggle" aria-label="Open navigation menu">
