@@ -25,6 +25,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'influencer
         <a href="influencer_campaigns.php" class="nav-link">Campaigns</a>
         <a href="influencer_analytics.php" class="nav-link">Analytics</a>
         <a href="influencer_messages.php" class="nav-link active">Messages</a>
+        <a href="influencer_profile.php" class="nav-link">Profile</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
