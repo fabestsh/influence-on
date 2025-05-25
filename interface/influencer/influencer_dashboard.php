@@ -22,9 +22,9 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'influencer
       <a href="#" class="logo">InfluenceON</a>
       <div class="nav-links">
         <a href="#" class="nav-link active">Dashboard</a>
-        <a href="#" class="nav-link">Campaigns</a>
-        <a href="#" class="nav-link">Analytics</a>
-        <a href="#" class="nav-link">Messages</a>
+        <a href="influencer_campaigns.php" class="nav-link">Campaigns</a>
+        <a href="influencer_analytics.php" class="nav-link">Analytics</a>
+        <a href="influencer_messages.php" class="nav-link">Messages</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
