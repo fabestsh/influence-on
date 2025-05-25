@@ -16,6 +16,7 @@ if (
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Influencers - InfluenceON</title>
+  <link rel="stylesheet" href="../../assets/css/form-controls.css" />
   <link rel="stylesheet" href="../../assets/css/style.css" />
 </head>
 <body>
@@ -27,6 +28,7 @@ if (
         <a href="campaigns.php" class="nav-link">Campaigns</a>
         <a href="influencers.php" class="nav-link active">Influencers</a>
         <a href="analytics.php" class="nav-link">Analytics</a>
+        <a href="../chat/chat.php" class="nav-link">Messages</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
@@ -42,7 +44,12 @@ if (
           <p class="text-secondary">Find and collaborate with the perfect influencers for your brand</p>
         </div>
         <div class="flex gap-2">
-          <input type="search" placeholder="Search influencers..." class="input" />
+          <div class="search-container">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="search" placeholder="Search influencers..." class="form-control" />
+          </div>
           <button class="button button-primary">Advanced Search</button>
         </div>
       </div>

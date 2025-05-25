@@ -27,6 +27,7 @@ if (
         <a href="campaigns.php" class="nav-link">Campaigns</a>
         <a href="influencers.php" class="nav-link">Influencers</a>
         <a href="analytics.php" class="nav-link active">Analytics</a>
+        <a href="../chat/chat.php" class="nav-link">Messages</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
