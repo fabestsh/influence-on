@@ -27,9 +27,9 @@ if (
       <a href="#" class="logo">InfluenceON</a>
       <div class="nav-links">
         <a href="#" class="nav-link active">Dashboard</a>
-        <a href="#" class="nav-link">Campaigns</a>
-        <a href="#" class="nav-link">Influencers</a>
-        <a href="#" class="nav-link">Analytics</a>
+        <a href="campaigns.php" class="nav-link">Campaigns</a>
+        <a href="influencers.php" class="nav-link">Influencers</a>
+        <a href="analytics.php" class="nav-link">Analytics</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
