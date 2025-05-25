@@ -17,14 +17,14 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'influencer
 </head>
 
 <body>
-  <nav class="navbar">
+<nav class="navbar">
     <div class="container navbar-content">
-      <a href="influencer_dashboard.php" class="logo">InfluenceON</a>
+      <a href="#" class="logo">InfluenceON</a>
       <div class="nav-links">
-        <a href="influencer_dashboard.php" class="nav-link">Dashboard</a>
+        <a href="influencer_dashboard.php" class="nav-link ">Dashboard</a>
         <a href="influencer_campaigns.php" class="nav-link">Campaigns</a>
+        <a href="../chat/chat.php" class="nav-link">Messages</a>
         <a href="influencer_analytics.php" class="nav-link active">Analytics</a>
-        <a href="influencer_messages.php" class="nav-link">Messages</a>
         <a href="influencer_profile.php" class="nav-link">Profile</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
