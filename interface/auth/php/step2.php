@@ -18,7 +18,7 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $role = $_POST['role'] ?? null;
 
-if (!in_array($role, ['business', 'influencer'])) {
+if (!in_array($role, ['business', 'influencer','admin'])) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'Invalid role']);
     exit;

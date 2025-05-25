@@ -1,9 +1,10 @@
 <?php
 session_start();
 
-if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin') {
-  header('Location: login.html');
-  exit;
+if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || $_SESSION['status'] != 1) 
+{
+    header('Location: ../auth/login.php');
+    exit;
 }
 ?>
 
@@ -14,7 +15,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin') {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Admin Dashboard - InfluenceON</title>
-  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../../assets/css/style.css" />
 </head>
 
 <body>
