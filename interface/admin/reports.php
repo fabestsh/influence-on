@@ -168,7 +168,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
         <a href="users.php" class="nav-link">Users</a>
         <a href="disputes.php" class="nav-link">Disputes</a>
         <a href="reports.php" class="nav-link active">Reports</a>
-        <form method="POST" action="../php/logout.php">
+        <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
       </div>
