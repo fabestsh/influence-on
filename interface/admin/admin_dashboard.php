@@ -23,10 +23,10 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
     <div class="container navbar-content">
       <a href="#" class="logo">InfluenceON</a>
       <div class="nav-links">
-        <a href="#" class="nav-link active">Dashboard</a>
-        <a href="#" class="nav-link">Users</a>
-        <a href="#" class="nav-link">Disputes</a>
-        <a href="#" class="nav-link">Reports</a>
+        <a href="admin_dashboard.php" class="nav-link active">Dashboard</a>
+        <a href="users.php" class="nav-link">Users</a>
+        <a href="disputes.php" class="nav-link">Disputes</a>
+        <a href="reports.php" class="nav-link">Reports</a>
         <form method="POST" action="../php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
