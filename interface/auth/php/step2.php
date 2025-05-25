@@ -57,8 +57,10 @@ try {
 
     if ($role === 'business') {
         header('Location: ../../business/business_dashboard.php');
-    } else {
+    } else if($role === 'influencer'){
         header('Location: ../../influencer/influencer_dashboard.php');
+    } else {
+        header('Location: ../../admin/admin_dashboard.php');
     }
     exit;
 
