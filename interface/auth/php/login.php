@@ -53,7 +53,9 @@ try {
 
     $redirectUrl = $user['role'] === 'business'
     ? '../../business/business_dashboard.php'
-    : '../../influencer/influencer_dashboard.php';
+    : ($user['role'] === 'influencer'
+        ? '../../influencer/influencer_dashboard.php'
+        : '../../admin/admin_dashboard.php');
 
     header("Location: $redirectUrl");
     exit;
