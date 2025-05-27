@@ -16,6 +16,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dispute Management - InfluenceON</title>
   <link rel="stylesheet" href="../../assets/css/style.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     .dispute-thread {
       background: var(--bg-white);
@@ -158,6 +159,165 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
     .card-header .flex {
       gap: 0.75rem;
     }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+    }
+
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filters input,
+    .filters select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .error {
+      color: var(--danger);
+      margin-bottom: 1rem;
+    }
+
+    .success {
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
+
+    .dispute-status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .status-open {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+
+    .status-resolved {
+      background: var(--success-light);
+      color: var(--success);
+    }
+
+    .status-closed {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .dispute-details {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--background-light);
+      border-radius: 4px;
+    }
+
+    .dispute-timeline {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 2px solid var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 1rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -1.5rem;
+      top: 0.25rem;
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .timeline-date {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
   </style>
 </head>
 
@@ -182,6 +342,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
       <div class="dashboard-header">
         <h1 class="welcome-text">Dispute Management</h1>
         <div class="flex gap-4">
+          <button class="button button-primary" onclick="openCreateDisputeModal()">Create Dispute</button>
           <button class="button button-primary">Export Disputes</button>
           <button class="button button-primary">Resolution Templates</button>
         </div>
@@ -350,13 +511,334 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
     </div>
   </main>
 
+  <!-- Create/Edit Dispute Modal -->
+  <div id="dispute-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDisputeModal()">&times;</span>
+      <h2 id="modal-title">Create Dispute</h2>
+      <form id="dispute-form" onsubmit="handleDisputeSubmit(event)">
+        <input type="hidden" id="dispute-id">
+        <div class="form-group">
+          <label for="campaign_id">Campaign</label>
+          <select id="campaign_id" name="campaign_id" required>
+            <option value="">Select Campaign</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="type">Type</label>
+          <select id="type" name="type" required>
+            <option value="payment">Payment</option>
+            <option value="content">Content</option>
+            <option value="delivery">Delivery</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status" required>
+            <option value="open">Open</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="resolution">Resolution</label>
+          <textarea id="resolution" name="resolution"></textarea>
+        </div>
+        <button type="submit" class="button button-primary">Save Dispute</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Dispute Modal -->
+  <div id="view-dispute-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeViewDisputeModal()">&times;</span>
+      <h2>Dispute Details</h2>
+      <div id="dispute-details"></div>
+      <div class="dispute-timeline" id="dispute-timeline"></div>
+      <div class="flex gap-2 mt-4">
+        <button class="button button-primary" onclick="editCurrentDispute()">Edit</button>
+        <button class="button button-danger" onclick="deleteCurrentDispute()">Delete</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     function toggleDispute(header) {
       const content = header.nextElementSibling;
       content.classList.toggle('active');
     }
+
+    let currentPage = 1;
+    const perPage = 10;
+    let currentDisputeId = null;
+
+    function showMessage(message, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = type;
+      messageDiv.textContent = message;
+      setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = '';
+      }, 5000);
+    }
+
+    function loadDisputes(page = 1) {
+      currentPage = page;
+      const search = document.querySelector('.search-input').value;
+      const status = document.querySelector('.filter-select').value;
+      const type = document.querySelector('.filter-select').value;
+
+      const disputesList = document.getElementById('disputes-list');
+      disputesList.innerHTML = '<div class="loading">Loading disputes...</div>';
+
+      $.get('php/admin_crud_api.php', {
+        entity: 'disputes',
+        action: 'list',
+        page: page,
+        per_page: perPage,
+        search: search,
+        status: status,
+        type: type
+      }, function(response) {
+        if (response.success) {
+          const { data, total_pages } = response.data;
+          let html = '<div class="list">';
+          
+          if (data.length === 0) {
+            html = '<div class="empty-state">No disputes found</div>';
+          } else {
+            data.forEach(dispute => {
+              html += `
+                <div class="list-item">
+                  <div class="list-item-content">
+                    <div class="list-item-title">
+                      ${dispute.campaign_title}
+                      <span class="dispute-status status-${dispute.status}">${dispute.status}</span>
+                    </div>
+                    <div class="list-item-subtitle">
+                      ${dispute.type.charAt(0).toUpperCase() + dispute.type.slice(1)} - 
+                      Reported by ${dispute.reporter_name}
+                    </div>
+                    <div class="list-item-description">${dispute.description}</div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="button button-primary" onclick="viewDispute(${dispute.id})">View</button>
+                    <button class="button button-primary" onclick="editDispute(${dispute.id})">Edit</button>
+                    <button class="button button-danger" onclick="deleteDispute(${dispute.id})">Delete</button>
+                  </div>
+                </div>
+              `;
+            });
+          }
+          
+          html += '</div>';
+          disputesList.innerHTML = html;
+
+          // Update pagination
+          let paginationHtml = '';
+          for (let i = 1; i <= total_pages; i++) {
+            paginationHtml += `
+              <button class="${i === page ? 'active' : ''}" 
+                      onclick="loadDisputes(${i})">${i}</button>
+            `;
+          }
+          document.getElementById('pagination').innerHTML = paginationHtml;
+        } else {
+          disputesList.innerHTML = `<div class="error">${response.message}</div>`;
+        }
+      }).fail(function() {
+        disputesList.innerHTML = '<div class="error">Error loading disputes</div>';
+      });
+    }
+
+    function loadCampaigns() {
+      $.get('php/admin_crud_api.php', {
+        entity: 'campaigns',
+        action: 'list',
+        status: 'active'
+      }, function(response) {
+        if (response.success) {
+          const select = document.getElementById('campaign_id');
+          select.innerHTML = '<option value="">Select Campaign</option>';
+          response.data.forEach(campaign => {
+            select.innerHTML += `
+              <option value="${campaign.id}">${campaign.title}</option>
+            `;
+          });
+        }
+      });
+    }
+
+    function openCreateDisputeModal() {
+      document.getElementById('modal-title').textContent = 'Create Dispute';
+      document.getElementById('dispute-form').reset();
+      document.getElementById('dispute-id').value = '';
+      document.getElementById('status').value = 'open';
+      document.getElementById('resolution').value = '';
+      loadCampaigns();
+      document.getElementById('dispute-modal').style.display = 'block';
+    }
+
+    function closeDisputeModal() {
+      document.getElementById('dispute-modal').style.display = 'none';
+    }
+
+    function closeViewDisputeModal() {
+      document.getElementById('view-dispute-modal').style.display = 'none';
+      currentDisputeId = null;
+    }
+
+    function viewDispute(disputeId) {
+      currentDisputeId = disputeId;
+      $.get('php/admin_crud_api.php', {
+        entity: 'disputes',
+        action: 'get',
+        id: disputeId
+      }, function(response) {
+        if (response.success) {
+          const dispute = response.data;
+          const details = document.getElementById('dispute-details');
+          const timeline = document.getElementById('dispute-timeline');
+
+          details.innerHTML = `
+            <div class="dispute-details">
+              <h3>${dispute.campaign_title}</h3>
+              <p><strong>Type:</strong> ${dispute.type}</p>
+              <p><strong>Status:</strong> <span class="dispute-status status-${dispute.status}">${dispute.status}</span></p>
+              <p><strong>Reported by:</strong> ${dispute.reporter_name}</p>
+              <p><strong>Description:</strong></p>
+              <p>${dispute.description}</p>
+              ${dispute.resolution ? `
+                <p><strong>Resolution:</strong></p>
+                <p>${dispute.resolution}</p>
+              ` : ''}
+            </div>
+          `;
+
+          timeline.innerHTML = `
+            <div class="timeline-item">
+              <div class="timeline-date">${new Date(dispute.created_at).toLocaleString()}</div>
+              <div>Dispute created</div>
+            </div>
+            ${dispute.resolved_at ? `
+              <div class="timeline-item">
+                <div class="timeline-date">${new Date(dispute.resolved_at).toLocaleString()}</div>
+                <div>Dispute ${dispute.status}</div>
+              </div>
+            ` : ''}
+          `;
+
+          document.getElementById('view-dispute-modal').style.display = 'block';
+        } else {
+          showMessage(response.message, 'error');
+        }
+      }).fail(function() {
+        showMessage('Error loading dispute details', 'error');
+      });
+    }
+
+    function editDispute(disputeId) {
+      currentDisputeId = disputeId;
+      $.get('php/admin_crud_api.php', {
+        entity: 'disputes',
+        action: 'get',
+        id: disputeId
+      }, function(response) {
+        if (response.success) {
+          const dispute = response.data;
+          document.getElementById('modal-title').textContent = 'Edit Dispute';
+          document.getElementById('dispute-id').value = dispute.id;
+          document.getElementById('campaign_id').value = dispute.campaign_id;
+          document.getElementById('type').value = dispute.type;
+          document.getElementById('description').value = dispute.description;
+          document.getElementById('status').value = dispute.status;
+          document.getElementById('resolution').value = dispute.resolution || '';
+          loadCampaigns();
+          document.getElementById('dispute-modal').style.display = 'block';
+        } else {
+          showMessage(response.message, 'error');
+        }
+      }).fail(function() {
+        showMessage('Error loading dispute data', 'error');
+      });
+    }
+
+    function editCurrentDispute() {
+      if (currentDisputeId) {
+        closeViewDisputeModal();
+        editDispute(currentDisputeId);
+      }
+    }
+
+    function deleteCurrentDispute() {
+      if (currentDisputeId) {
+        closeViewDisputeModal();
+        deleteDispute(currentDisputeId);
+      }
+    }
+
+    function handleDisputeSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const disputeId = document.getElementById('dispute-id').value;
+      const formData = new FormData(form);
+
+      const action = disputeId ? 'update' : 'create';
+      if (action === 'update') {
+        formData.append('id', disputeId);
+      }
+
+      $.ajax({
+        url: `php/admin_crud_api.php?entity=disputes&action=${action}`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          if (response.success) {
+            showMessage(`Dispute ${action === 'create' ? 'created' : 'updated'} successfully`, 'success');
+            closeDisputeModal();
+            loadDisputes(currentPage);
+          } else {
+            showMessage(response.message, 'error');
+          }
+        },
+        error: function() {
+          showMessage(`Error ${action === 'create' ? 'creating' : 'updating'} dispute`, 'error');
+        }
+      });
+    }
+
+    function deleteDispute(disputeId) {
+      if (!confirm('Are you sure you want to delete this dispute?')) return;
+
+      $.post('php/admin_crud_api.php', {
+        entity: 'disputes',
+        action: 'delete',
+        id: disputeId
+      }, function(response) {
+        if (response.success) {
+          showMessage('Dispute deleted successfully', 'success');
+          loadDisputes(currentPage);
+        } else {
+          showMessage(response.message, 'error');
+        }
+      }).fail(function() {
+        showMessage('Error deleting dispute', 'error');
+      });
+    }
+
+    // Load disputes when the page loads
+    $(document).ready(function() {
+      loadDisputes();
+    });
   </script>
-  <script src="../js/script.js"></script>
 </body>
 
 </html> 

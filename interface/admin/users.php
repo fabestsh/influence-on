@@ -16,6 +16,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>User Management - InfluenceON</title>
   <link rel="stylesheet" href="../../assets/css/style.css" />
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     .search-input {
       padding: 0.5rem 1rem;
@@ -85,6 +86,109 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
     .card-header .flex {
       gap: 0.75rem;
     }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    .modal-content {
+      position: relative;
+      background: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .close {
+      position: absolute;
+      right: 20px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .form-group textarea {
+      min-height: 100px;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .pagination button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ddd;
+      background: white;
+      cursor: pointer;
+    }
+
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filters input,
+    .filters select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+    }
+
+    .error {
+      color: var(--danger);
+      margin-bottom: 1rem;
+    }
+
+    .success {
+      color: var(--success);
+      margin-bottom: 1rem;
+    }
   </style>
 </head>
 
@@ -109,6 +213,7 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
       <div class="dashboard-header">
         <h1 class="welcome-text">User Management</h1>
         <div class="flex gap-4">
+          <button class="button button-primary" onclick="openCreateUserModal()">Add New User</button>
           <button class="button button-primary">Export Users</button>
           <button class="button button-primary">Bulk Actions</button>
         </div>
@@ -278,7 +383,292 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
     </div>
   </main>
 
-  <script src="../js/script.js"></script>
+  <!-- Create/Edit User Modal -->
+  <div id="user-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeUserModal()">&times;</span>
+      <h2 id="modal-title">Add New User</h2>
+      <form id="user-form" onsubmit="handleUserSubmit(event)">
+        <input type="hidden" id="user-id">
+        <div class="form-group">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password">
+          <small>Leave blank to keep existing password when editing</small>
+        </div>
+        <div class="form-group">
+          <label for="role">Role</label>
+          <select id="role" name="role" required onchange="toggleRoleFields()">
+            <option value="admin">Admin</option>
+            <option value="business">Business</option>
+            <option value="influencer">Influencer</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status" required>
+            <option value="1">Active</option>
+            <option value="0">Inactive</option>
+          </select>
+        </div>
+
+        <!-- Business-specific fields -->
+        <div id="business-fields" style="display: none;">
+          <div class="form-group">
+            <label for="business_name">Business Name</label>
+            <input type="text" id="business_name" name="business_name">
+          </div>
+          <div class="form-group">
+            <label for="industry">Industry</label>
+            <input type="text" id="industry" name="industry">
+          </div>
+          <div class="form-group">
+            <label for="website">Website</label>
+            <input type="url" id="website" name="website">
+          </div>
+          <div class="form-group">
+            <label for="contact_info">Contact Info</label>
+            <input type="text" id="contact_info" name="contact_info">
+          </div>
+        </div>
+
+        <!-- Influencer-specific fields -->
+        <div id="influencer-fields" style="display: none;">
+          <div class="form-group">
+            <label for="social_links">Social Links (JSON)</label>
+            <textarea id="social_links" name="social_links" placeholder='{"instagram": "https://instagram.com/...", "twitter": "https://twitter.com/..."}'></textarea>
+          </div>
+          <div class="form-group">
+            <label for="expertise">Expertise (JSON)</label>
+            <textarea id="expertise" name="expertise" placeholder='["fashion", "lifestyle", "travel"]'></textarea>
+          </div>
+          <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="13" max="100">
+          </div>
+          <div class="form-group">
+            <label for="bio">Bio</label>
+            <textarea id="bio" name="bio"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="button button-primary">Save User</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let currentPage = 1;
+    const perPage = 10;
+
+    function showMessage(message, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.className = type;
+      messageDiv.textContent = message;
+      setTimeout(() => {
+        messageDiv.textContent = '';
+        messageDiv.className = '';
+      }, 5000);
+    }
+
+    function loadUsers(page = 1) {
+      currentPage = page;
+      const search = document.querySelector('.search-input').value;
+      const role = document.querySelector('.filter-select').value;
+      const status = document.querySelector('.filter-select').value;
+
+      const usersList = document.getElementById('users-list');
+      usersList.innerHTML = '<div class="loading">Loading users...</div>';
+
+      $.get('php/admin_crud_api.php', {
+        entity: 'users',
+        action: 'list',
+        page: page,
+        per_page: perPage,
+        search: search,
+        role: role,
+        status: status
+      }, function(response) {
+        if (response.success) {
+          const { data, total_pages } = response.data;
+          let html = '<div class="list">';
+          
+          if (data.length === 0) {
+            html = '<div class="empty-state">No users found</div>';
+          } else {
+            data.forEach(user => {
+              html += `
+                <div class="list-item">
+                  <div class="list-item-content">
+                    <div class="list-item-title">${user.name}</div>
+                    <div class="list-item-subtitle">
+                      ${user.email} - ${user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                      ${user.profile_info ? `(${user.profile_info})` : ''}
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="button button-primary" onclick="editUser(${user.id})">Edit</button>
+                    <button class="button button-danger" onclick="deleteUser(${user.id})">Delete</button>
+                  </div>
+                </div>
+              `;
+            });
+          }
+          
+          html += '</div>';
+          usersList.innerHTML = html;
+
+          // Update pagination
+          let paginationHtml = '';
+          for (let i = 1; i <= total_pages; i++) {
+            paginationHtml += `
+              <button class="${i === page ? 'active' : ''}" 
+                      onclick="loadUsers(${i})">${i}</button>
+            `;
+          }
+          document.getElementById('pagination').innerHTML = paginationHtml;
+        } else {
+          usersList.innerHTML = `<div class="error">${response.message}</div>`;
+        }
+      }).fail(function() {
+        usersList.innerHTML = '<div class="error">Error loading users</div>';
+      });
+    }
+
+    function openCreateUserModal() {
+      document.getElementById('modal-title').textContent = 'Add New User';
+      document.getElementById('user-form').reset();
+      document.getElementById('user-id').value = '';
+      document.getElementById('password').required = true;
+      toggleRoleFields();
+      document.getElementById('user-modal').style.display = 'block';
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').style.display = 'none';
+    }
+
+    function toggleRoleFields() {
+      const role = document.getElementById('role').value;
+      document.getElementById('business-fields').style.display = role === 'business' ? 'block' : 'none';
+      document.getElementById('influencer-fields').style.display = role === 'influencer' ? 'block' : 'none';
+    }
+
+    function editUser(userId) {
+      $.get('php/admin_crud_api.php', {
+        entity: 'users',
+        action: 'get',
+        id: userId
+      }, function(response) {
+        if (response.success) {
+          const user = response.data;
+          document.getElementById('modal-title').textContent = 'Edit User';
+          document.getElementById('user-id').value = user.id;
+          document.getElementById('name').value = user.name;
+          document.getElementById('email').value = user.email;
+          document.getElementById('role').value = user.role;
+          document.getElementById('status').value = user.status;
+          document.getElementById('password').required = false;
+
+          // Set role-specific fields
+          if (user.role === 'business') {
+            const profile = JSON.parse(user.profile_info || '{}');
+            document.getElementById('business_name').value = profile.name || '';
+            document.getElementById('industry').value = profile.industry || '';
+            document.getElementById('website').value = profile.website || '';
+            document.getElementById('contact_info').value = profile.contact_info || '';
+          } else if (user.role === 'influencer') {
+            const profile = JSON.parse(user.profile_info || '{}');
+            document.getElementById('social_links').value = JSON.stringify(profile.social_links || {}, null, 2);
+            document.getElementById('expertise').value = JSON.stringify(profile.expertise || [], null, 2);
+            document.getElementById('age').value = profile.age || '';
+            document.getElementById('bio').value = profile.bio || '';
+          }
+
+          toggleRoleFields();
+          document.getElementById('user-modal').style.display = 'block';
+        } else {
+          showMessage(response.message, 'error');
+        }
+      }).fail(function() {
+        showMessage('Error loading user data', 'error');
+      });
+    }
+
+    function handleUserSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const userId = document.getElementById('user-id').value;
+      const formData = new FormData(form);
+      
+      // Convert JSON fields
+      if (formData.get('role') === 'influencer') {
+        try {
+          formData.set('social_links', JSON.parse(formData.get('social_links')));
+          formData.set('expertise', JSON.parse(formData.get('expertise')));
+        } catch (e) {
+          showMessage('Invalid JSON in social links or expertise', 'error');
+          return;
+        }
+      }
+
+      const action = userId ? 'update' : 'create';
+      if (action === 'update') {
+        formData.append('id', userId);
+      }
+
+      $.ajax({
+        url: `php/admin_crud_api.php?entity=users&action=${action}`,
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          if (response.success) {
+            showMessage(`User ${action === 'create' ? 'created' : 'updated'} successfully`, 'success');
+            closeUserModal();
+            loadUsers(currentPage);
+          } else {
+            showMessage(response.message, 'error');
+          }
+        },
+        error: function() {
+          showMessage(`Error ${action === 'create' ? 'creating' : 'updating'} user`, 'error');
+        }
+      });
+    }
+
+    function deleteUser(userId) {
+      if (!confirm('Are you sure you want to delete this user?')) return;
+
+      $.post('php/admin_crud_api.php', {
+        entity: 'users',
+        action: 'delete',
+        id: userId
+      }, function(response) {
+        if (response.success) {
+          showMessage('User deleted successfully', 'success');
+          loadUsers(currentPage);
+        } else {
+          showMessage(response.message, 'error');
+        }
+      }).fail(function() {
+        showMessage('Error deleting user', 'error');
+      });
+    }
+
+    // Load users when the page loads
+    $(document).ready(function() {
+      loadUsers();
+    });
+  </script>
 </body>
 
 </html> 

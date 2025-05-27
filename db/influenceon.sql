@@ -24,88 +24,22 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Table structure for table `boosted_visibility`
+-- Table structure for table `users`
 --
 
-CREATE TABLE `boosted_visibility` (
-  `boost_id` int(11) NOT NULL,
-  `influencer_id` int(11) NOT NULL,
-  `start_date` datetime NOT NULL,
-  `end_date` datetime NOT NULL,
-  `amount_paid` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `businesses`
---
-
-CREATE TABLE `businesses` (
-  `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `industry` varchar(100) NOT NULL,
-  `website` varchar(255) DEFAULT NULL,
-  `contact_info` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password_hash` varchar(255) NOT NULL,
+  `role` enum('admin','business','influencer') NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `businesses`
---
-
-INSERT INTO `businesses` (`id`, `user_id`, `name`, `industry`, `website`, `contact_info`, `created_at`, `updated_at`) VALUES
-(2, 3, 'Test', 'Test', '', 'Test', '2025-05-25 17:22:35', '2025-05-25 17:22:35');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `campaigns`
---
-
-CREATE TABLE `campaigns` (
-  `campaign_id` int(11) NOT NULL,
-  `business_id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` longtext NOT NULL,
-  `budget` int(11) NOT NULL,
-  `status` varchar(255) NOT NULL,
-  `deadline` datetime NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `chats`
---
-
-CREATE TABLE `chats` (
-  `chat_id` int(11) NOT NULL,
-  `sender_id` int(11) NOT NULL,
-  `receiver_id` int(11) NOT NULL,
-  `message` longtext NOT NULL,
-  `send_date` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `content`
---
-
-CREATE TABLE `content` (
-  `content_id` int(11) NOT NULL,
-  `influencer_id` int(11) NOT NULL,
-  `project_id` int(11) NOT NULL,
-  `content_link` varchar(255) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  KEY `idx_role_status` (`role`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -114,23 +48,179 @@ CREATE TABLE `content` (
 -- Table structure for table `influencers`
 --
 
+DROP TABLE IF EXISTS `influencers`;
 CREATE TABLE `influencers` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
-  `social_links` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`social_links`)),
-  `expertise` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`expertise`)),
+  `social_links` json DEFAULT NULL,
+  `expertise` json DEFAULT NULL,
   `age` int(11) DEFAULT NULL,
   `bio` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ;
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `influencers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `influencers`
+-- Table structure for table `businesses`
 --
 
-INSERT INTO `influencers` (`id`, `user_id`, `social_links`, `expertise`, `age`, `bio`, `created_at`, `updated_at`) VALUES
-(1, 1, '{\"instagram\":\"\",\"tiktok\":\"\",\"youtube\":\"\"}', '[]', 0, '', '2025-05-25 13:58:15', '2025-05-25 13:58:15');
+DROP TABLE IF EXISTS `businesses`;
+CREATE TABLE `businesses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `industry` varchar(100) NOT NULL,
+  `website` varchar(255) DEFAULT NULL,
+  `contact_info` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `businesses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campaigns`
+--
+
+DROP TABLE IF EXISTS `campaigns`;
+CREATE TABLE `campaigns` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `business_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `budget` decimal(10,2) NOT NULL,
+  `requirements` text DEFAULT NULL,
+  `status` enum('draft','active','completed','cancelled') NOT NULL DEFAULT 'draft',
+  `start_date` date DEFAULT NULL,
+  `end_date` date DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `business_id` (`business_id`),
+  KEY `idx_status_dates` (`status`, `start_date`, `end_date`),
+  CONSTRAINT `campaigns_ibfk_1` FOREIGN KEY (`business_id`) REFERENCES `businesses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `campaign_payments`
+--
+
+DROP TABLE IF EXISTS `campaign_payments`;
+CREATE TABLE `campaign_payments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `influencer_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `status` enum('pending','completed','failed','refunded') NOT NULL DEFAULT 'pending',
+  `payment_date` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `influencer_id` (`influencer_id`),
+  KEY `idx_status_date` (`status`, `payment_date`),
+  CONSTRAINT `campaign_payments_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `campaign_payments_ibfk_2` FOREIGN KEY (`influencer_id`) REFERENCES `influencers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `disputes`
+--
+
+DROP TABLE IF EXISTS `disputes`;
+CREATE TABLE `disputes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `campaign_id` int(11) NOT NULL,
+  `reported_by` int(11) NOT NULL,
+  `reported_user` int(11) NOT NULL,
+  `reason` text NOT NULL,
+  `status` enum('open','resolved','closed') NOT NULL DEFAULT 'open',
+  `resolution` text DEFAULT NULL,
+  `resolved_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `campaign_id` (`campaign_id`),
+  KEY `reported_by` (`reported_by`),
+  KEY `reported_user` (`reported_user`),
+  KEY `idx_status_created` (`status`, `created_at`),
+  CONSTRAINT `disputes_ibfk_1` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `disputes_ibfk_2` FOREIGN KEY (`reported_by`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `disputes_ibfk_3` FOREIGN KEY (`reported_user`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `boosted_visibility`
+--
+
+DROP TABLE IF EXISTS `boosted_visibility`;
+CREATE TABLE `boosted_visibility` (
+  `boost_id` int(11) NOT NULL AUTO_INCREMENT,
+  `influencer_id` int(11) NOT NULL,
+  `start_date` datetime NOT NULL,
+  `end_date` datetime NOT NULL,
+  `amount_paid` decimal(10,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`boost_id`),
+  KEY `influencer_id` (`influencer_id`),
+  CONSTRAINT `boosted_visibility_ibfk_1` FOREIGN KEY (`influencer_id`) REFERENCES `influencers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chats`
+--
+
+DROP TABLE IF EXISTS `chats`;
+CREATE TABLE `chats` (
+  `chat_id` int(11) NOT NULL AUTO_INCREMENT,
+  `sender_id` int(11) NOT NULL,
+  `receiver_id` int(11) NOT NULL,
+  `message` text NOT NULL,
+  `send_date` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`chat_id`),
+  KEY `sender_id` (`sender_id`),
+  KEY `receiver_id` (`receiver_id`),
+  CONSTRAINT `chats_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `chats_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `content`
+--
+
+DROP TABLE IF EXISTS `content`;
+CREATE TABLE `content` (
+  `content_id` int(11) NOT NULL AUTO_INCREMENT,
+  `influencer_id` int(11) NOT NULL,
+  `campaign_id` int(11) NOT NULL,
+  `content_link` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`content_id`),
+  KEY `influencer_id` (`influencer_id`),
+  KEY `campaign_id` (`campaign_id`),
+  CONSTRAINT `content_ibfk_1` FOREIGN KEY (`influencer_id`) REFERENCES `influencers` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `content_ibfk_2` FOREIGN KEY (`campaign_id`) REFERENCES `campaigns` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -138,254 +228,51 @@ INSERT INTO `influencers` (`id`, `user_id`, `social_links`, `expertise`, `age`, 
 -- Table structure for table `password_resets`
 --
 
+DROP TABLE IF EXISTS `password_resets`;
 CREATE TABLE `password_resets` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT,
   `email` varchar(255) NOT NULL,
   `token` varchar(255) NOT NULL,
-  `created_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `payments`
---
-
-CREATE TABLE `payments` (
-  `payment_id` int(11) NOT NULL,
-  `project_id` int(11) NOT NULL,
-  `amount` int(11) NOT NULL,
-  `payment_date` datetime NOT NULL,
-  `status` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
+  PRIMARY KEY (`id`),
+  KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `projects`
+-- Insert default admin user if not exists
 --
 
-CREATE TABLE `projects` (
-  `project_id` int(11) NOT NULL,
-  `influencer_id` int(11) NOT NULL,
-  `business_id` int(11) NOT NULL,
-  `campaign_id` int(11) NOT NULL,
-  `status` varchar(255) NOT NULL,
-  `payment_amount` int(11) NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+INSERT IGNORE INTO `users` (`name`, `email`, `password_hash`, `role`, `status`) 
+VALUES ('Admin User', 'admin@influenceon.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 1);
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `roles`
+-- Preserve existing data
 --
 
-CREATE TABLE `roles` (
-  `role_id` int(11) NOT NULL,
-  `role_name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- Migrate existing users data
+INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `status`, `created_at`, `updated_at`)
+SELECT `id`, `name`, `email`, `password_hash`, `role`, `status`, `created_at`, `updated_at`
+FROM `users_old` WHERE NOT EXISTS (SELECT 1 FROM `users` WHERE `users`.`id` = `users_old`.`id`);
 
---
--- Dumping data for table `roles`
---
+-- Migrate existing businesses data
+INSERT IGNORE INTO `businesses` (`id`, `user_id`, `name`, `industry`, `website`, `contact_info`, `created_at`, `updated_at`)
+SELECT `id`, `user_id`, `name`, `industry`, `website`, `contact_info`, `created_at`, `updated_at`
+FROM `businesses_old` WHERE NOT EXISTS (SELECT 1 FROM `businesses` WHERE `businesses`.`id` = `businesses_old`.`id`);
 
-INSERT INTO `roles` (`role_id`, `role_name`) VALUES
-(1, 'business'),
-(2, 'influencer'),
-(3, 'admin');
+-- Migrate existing influencers data
+INSERT IGNORE INTO `influencers` (`id`, `user_id`, `social_links`, `expertise`, `age`, `bio`, `created_at`, `updated_at`)
+SELECT `id`, `user_id`, `social_links`, `expertise`, `age`, `bio`, `created_at`, `updated_at`
+FROM `influencers_old` WHERE NOT EXISTS (SELECT 1 FROM `influencers` WHERE `influencers`.`id` = `influencers_old`.`id`);
 
--- --------------------------------------------------------
+-- Drop temporary tables after migration
+DROP TABLE IF EXISTS `users_old`;
+DROP TABLE IF EXISTS `businesses_old`;
+DROP TABLE IF EXISTS `influencers_old`;
 
---
--- Table structure for table `users`
---
-
-CREATE TABLE `users` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `password_hash` varchar(255) NOT NULL,
-  `role` enum('business','influencer','admin') NOT NULL,
-  `status` int(11) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `users`
---
-
-INSERT INTO `users` (`id`, `name`, `email`, `password_hash`, `role`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Fabest Sharra', 'fabestsharra@gmail.com', '$2y$10$MhzGr/a88Tn.bzlImHVWbOeD8vsvYc7r.DlfZEbOk.HB4MFr1YYNG', 'influencer', 1, '2025-05-25 13:58:08', '2025-05-25 16:49:27'),
-(2, 'Fabest Sharra', 'f.sharra@albict.al', '$2y$10$fB01BkYV6g0I0Qpd5Aps1e64eJbz5Ay4trJT8/SSqa6VXUltFiy6u', 'admin', 1, '2025-05-25 16:48:51', '2025-05-25 16:49:21'),
-(3, 'Fabest Sharra', 'fabest.sharra@fshnstudent.info', '$2y$10$oLIFN2lHxhfk1ufE9rcFGuYP7p06GxdY19b6tf80k5avBjYbHo2pe', 'business', 1, '2025-05-25 17:22:21', '2025-05-25 17:22:35');
-
---
--- Indexes for dumped tables
---
-
---
--- Indexes for table `boosted_visibility`
---
-ALTER TABLE `boosted_visibility`
-  ADD PRIMARY KEY (`boost_id`);
-
---
--- Indexes for table `businesses`
---
-ALTER TABLE `businesses`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id` (`user_id`),
-  ADD KEY `idx_industry` (`industry`);
-
---
--- Indexes for table `campaigns`
---
-ALTER TABLE `campaigns`
-  ADD PRIMARY KEY (`campaign_id`);
-
---
--- Indexes for table `chats`
---
-ALTER TABLE `chats`
-  ADD PRIMARY KEY (`chat_id`);
-
---
--- Indexes for table `content`
---
-ALTER TABLE `content`
-  ADD PRIMARY KEY (`content_id`);
-
---
--- Indexes for table `influencers`
---
-ALTER TABLE `influencers`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id` (`user_id`);
-
---
--- Indexes for table `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `email` (`email`);
-
---
--- Indexes for table `payments`
---
-ALTER TABLE `payments`
-  ADD PRIMARY KEY (`payment_id`);
-
---
--- Indexes for table `projects`
---
-ALTER TABLE `projects`
-  ADD PRIMARY KEY (`project_id`);
-
---
--- Indexes for table `roles`
---
-ALTER TABLE `roles`
-  ADD PRIMARY KEY (`role_id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `email` (`email`),
-  ADD KEY `idx_email` (`email`),
-  ADD KEY `idx_role` (`role`);
-
---
--- AUTO_INCREMENT for dumped tables
---
-
---
--- AUTO_INCREMENT for table `boosted_visibility`
---
-ALTER TABLE `boosted_visibility`
-  MODIFY `boost_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `businesses`
---
-ALTER TABLE `businesses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `campaigns`
---
-ALTER TABLE `campaigns`
-  MODIFY `campaign_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `chats`
---
-ALTER TABLE `chats`
-  MODIFY `chat_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `content`
---
-ALTER TABLE `content`
-  MODIFY `content_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `influencers`
---
-ALTER TABLE `influencers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `payments`
---
-ALTER TABLE `payments`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `projects`
---
-ALTER TABLE `projects`
-  MODIFY `project_id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `roles`
---
-ALTER TABLE `roles`
-  MODIFY `role_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `businesses`
---
-ALTER TABLE `businesses`
-  ADD CONSTRAINT `businesses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `influencers`
---
-ALTER TABLE `influencers`
-  ADD CONSTRAINT `influencers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
