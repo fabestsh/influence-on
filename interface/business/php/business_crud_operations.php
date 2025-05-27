@@ -116,15 +116,43 @@ class BusinessCampaignOperations {
 class BusinessInfluencerOperations {
     private $pdo;
     private $business_id;
+    private $lastError;
 
     public function __construct($pdo, $business_id) {
         $this->pdo = $pdo;
         $this->business_id = $business_id;
+        $this->lastError = null;
+        
+        // Verify database connection
+        try {
+            $this->pdo->query("SELECT 1");
+        } catch (PDOException $e) {
+            error_log("Database connection verification failed: " . $e->getMessage());
+            throw new Exception("Database connection failed");
+        }
+    }
+
+    public function getLastError() {
+        return $this->lastError;
     }
 
     // Get all influencers who have applied to the business's campaigns
     public function getInfluencers($filters = []) {
         try {
+            error_log("Starting getInfluencers query with business_id: " . $this->business_id);
+            
+            // First, verify the tables exist
+            $tables = ['users', 'influencers', 'campaign_payments', 'campaigns'];
+            foreach ($tables as $table) {
+                try {
+                    $this->pdo->query("SELECT 1 FROM $table LIMIT 1");
+                } catch (PDOException $e) {
+                    error_log("Table '$table' does not exist or is not accessible: " . $e->getMessage());
+                    throw new Exception("Required table '$table' is not available");
+                }
+            }
+
+            // Build the query with proper table aliases and joins
             $where = ["c.business_id = :business_id"];
             $params = ['business_id' => $this->business_id];
 
@@ -140,25 +168,63 @@ class BusinessInfluencerOperations {
 
             $whereClause = !empty($where) ? "WHERE " . implode(" AND ", $where) : "";
 
+            // Modified query to handle potential NULL values and ensure proper joins
             $query = "
                 SELECT DISTINCT 
-                    u.id, u.name, u.email, i.*,
-                    COUNT(DISTINCT cp.id) as total_collaborations,
+                    u.id,
+                    u.name,
+                    u.email,
+                    i.id as influencer_id,
+                    i.bio,
+                    i.expertise,
+                    i.social_links,
+                    COALESCE(COUNT(DISTINCT cp.id), 0) as total_collaborations,
                     COALESCE(SUM(cp.amount), 0) as total_earnings
                 FROM users u
-                JOIN influencers i ON u.id = i.user_id
+                INNER JOIN influencers i ON u.id = i.user_id
                 LEFT JOIN campaign_payments cp ON i.id = cp.influencer_id
                 LEFT JOIN campaigns c ON cp.campaign_id = c.id
                 $whereClause
-                GROUP BY u.id
+                GROUP BY u.id, u.name, u.email, i.id, i.bio, i.expertise, i.social_links
                 ORDER BY total_collaborations DESC
             ";
 
+            error_log("Executing query: " . $query);
+            error_log("With params: " . json_encode($params));
+
             $stmt = $this->pdo->prepare($query);
             $stmt->execute($params);
-            return $stmt->fetchAll();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Process the results to ensure JSON fields are properly handled
+            foreach ($result as &$row) {
+                if (isset($row['expertise'])) {
+                    try {
+                        $row['expertise'] = json_decode($row['expertise'], true) ?? [];
+                    } catch (Exception $e) {
+                        error_log("Error decoding expertise JSON for user {$row['id']}: " . $e->getMessage());
+                        $row['expertise'] = [];
+                    }
+                }
+                if (isset($row['social_links'])) {
+                    try {
+                        $row['social_links'] = json_decode($row['social_links'], true) ?? [];
+                    } catch (Exception $e) {
+                        error_log("Error decoding social_links JSON for user {$row['id']}: " . $e->getMessage());
+                        $row['social_links'] = [];
+                    }
+                }
+            }
+            
+            error_log("Query returned " . count($result) . " results");
+            return $result;
         } catch (PDOException $e) {
-            error_log("Error fetching influencers: " . $e->getMessage());
+            $this->lastError = "Database error: " . $e->getMessage();
+            error_log("PDO Error in getInfluencers: " . $e->getMessage());
+            return false;
+        } catch (Exception $e) {
+            $this->lastError = $e->getMessage();
+            error_log("General Error in getInfluencers: " . $e->getMessage());
             return false;
         }
     }
