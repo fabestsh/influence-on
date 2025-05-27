@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => null,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => '5c6573d92ce0f190508f7b00327a2b442dcc3cb4',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => null,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => '5c6573d92ce0f190508f7b00327a2b442dcc3cb4',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -202,15 +202,6 @@
             'reference' => '120b605dfeb996808c31b6477290a714d356e822',
             'type' => 'library',
             'install_path' => __DIR__ . '/../ralouphie/getallheaders',
-            'aliases' => array(),
-            'dev_requirement' => false,
-        ),
-        'sendinblue/api-v3-sdk' => array(
-            'pretty_version' => 'v8.4.2',
-            'version' => '8.4.2.0',
-            'reference' => '5d08398c7247a2f5d80f285d08a6dbe169f18eab',
-            'type' => 'library',
-            'install_path' => __DIR__ . '/../sendinblue/api-v3-sdk',
             'aliases' => array(),
             'dev_requirement' => false,
         ),

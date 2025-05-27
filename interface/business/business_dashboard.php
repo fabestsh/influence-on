@@ -1,14 +1,14 @@
 <?php
-session_start();
+    session_start();
 
-if (
-  !isset($_SESSION['authenticated']) ||
-  $_SESSION['user_role'] !== 'business' ||
-  $_SESSION['status'] != 1
-) {
-  header('Location: ../auth/login.php');
-  exit;
-}
+    if (
+        ! isset($_SESSION['authenticated']) ||
+        $_SESSION['user_role'] !== 'business' ||
+        $_SESSION['status'] != 1
+    ) {
+        header('Location: ../auth/login.php');
+        exit;
+    }
 
 ?>
 <!DOCTYPE html>
@@ -30,7 +30,13 @@ if (
         <a href="#" class="nav-link">Campaigns</a>
         <a href="#" class="nav-link">Influencers</a>
         <a href="#" class="nav-link">Analytics</a>
-        <a href="../chat/chat.php" class="nav-link">Chat</a>
+
+        <?php
+            $jwt = $_SESSION['jwt_token'] ?? '';
+        ?>
+
+        <a href="http://localhost/chat/public/?token=<?php echo urlencode($jwt) ?>" class="nav-link">Chat</a>
+
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>

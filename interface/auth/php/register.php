@@ -2,7 +2,7 @@
 session_start();
 header('Content-Type: application/json');
 
-$pdo = include('../../../db/db_connection.php');
+$pdo = include '../../../db/db_connection.php';
 
 function sanitize($input)
 {
@@ -15,13 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$name = sanitize($_POST['name'] ?? '');
-$email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
-$password = $_POST['password'] ?? '';
+$name            = sanitize($_POST['name'] ?? '');
+$email           = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
+$password        = $_POST['password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
-$status = 0;
+$status          = 0;
 
-if (!$name || !$email || !$password || !$confirmPassword) {
+if (! $name || ! $email || ! $password || ! $confirmPassword) {
     http_response_code(400);
     echo json_encode(['success' => false, 'message' => 'All fields are required']);
     exit;
@@ -58,21 +58,22 @@ try {
 
     $pdo->commit();
 
-    $_SESSION['user_id'] = $userId;
-    $_SESSION['user_email'] = $email;
-    $_SESSION['status'] = $status;
+    $_SESSION['user_id']       = $userId;
+    $_SESSION['user_name']     = $name;
+    $_SESSION['user_email']    = $email;
+    $_SESSION['status']        = $status;
     $_SESSION['authenticated'] = true;
 
     echo json_encode([
-        'success' => true,
-        'message' => 'Registration successful',
+        'success'  => true,
+        'message'  => 'Registration successful',
         'redirect' => '../auth/step2.php',
-        'user' => [
-            'id' => $userId,
-            'email' => $email,
-            'name' => $name,
-            'status' => $status
-        ]
+        'user'     => [
+            'id'     => $userId,
+            'email'  => $email,
+            'name'   => $name,
+            'status' => $status,
+        ],
     ]);
 
 } catch (Exception $e) {
@@ -83,6 +84,6 @@ try {
     http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
     ]);
 }

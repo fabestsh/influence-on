@@ -20,10 +20,6 @@ class ComposerStaticInit5cd48b6645860e6f71f44390d4549abe
         array (
             'phpseclib3\\' => 11,
         ),
-        'S' => 
-        array (
-            'SendinBlue\\Client\\' => 18,
-        ),
         'P' => 
         array (
             'Psr\\Log\\' => 8,
@@ -56,10 +52,6 @@ class ComposerStaticInit5cd48b6645860e6f71f44390d4549abe
         'phpseclib3\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpseclib/phpseclib/phpseclib',
-        ),
-        'SendinBlue\\Client\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/sendinblue/api-v3-sdk/lib',
         ),
         'Psr\\Log\\' => 
         array (
