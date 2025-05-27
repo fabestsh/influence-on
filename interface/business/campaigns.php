@@ -964,6 +964,351 @@ if (
         closeModal();
       }
     });
+
+    // Campaign Management Functions
+    let campaigns = [];
+    let currentFilters = {
+        status: '',
+        search: ''
+    };
+
+    // Load campaigns
+    async function loadCampaigns() {
+        try {
+            const queryParams = new URLSearchParams(currentFilters);
+            const response = await fetch(`php/business_api.php?endpoint=campaigns&${queryParams}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                campaigns = result.data;
+                renderCampaigns();
+            } else {
+                showToast('Failed to load campaigns', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading campaigns:', error);
+            showToast('Error loading campaigns', 'error');
+        }
+    }
+
+    // Render campaigns in the grid
+    function renderCampaigns() {
+        const grid = document.getElementById('campaignsGrid');
+        if (!grid) return;
+
+        grid.innerHTML = campaigns.map(campaign => `
+            <div class="campaign-card" data-id="${campaign.id}">
+                <div class="campaign-header">
+                    <div>
+                        <h3 class="campaign-title">${campaign.title}</h3>
+                        <span class="campaign-category">${campaign.status}</span>
+                    </div>
+                    <div class="campaign-budget">$${parseFloat(campaign.budget).toLocaleString()}</div>
+                </div>
+                <p class="campaign-description">${campaign.description}</p>
+                <div class="campaign-details">
+                    <div class="campaign-detail">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Duration: ${new Date(campaign.start_date).toLocaleDateString()} - ${new Date(campaign.end_date).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="campaign-actions">
+                    <button class="button" onclick="editCampaign(${campaign.id})">Edit</button>
+                    <button class="button button-primary" onclick="viewCampaignDetails(${campaign.id})">View Details</button>
+                    <button class="button button-danger" onclick="deleteCampaign(${campaign.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Create new campaign
+    async function createCampaign(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        
+        const campaignData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            budget: formData.get('budget'),
+            requirements: formData.get('requirements'),
+            start_date: formData.get('start_date'),
+            end_date: formData.get('end_date'),
+            status: 'draft'
+        };
+
+        try {
+            const response = await fetch('php/business_api.php?endpoint=campaigns', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(campaignData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showToast('Campaign created successfully');
+                closeModal('createCampaignModal');
+                loadCampaigns();
+            } else {
+                showToast(result.error || 'Failed to create campaign', 'error');
+            }
+        } catch (error) {
+            console.error('Error creating campaign:', error);
+            showToast('Error creating campaign', 'error');
+        }
+    }
+
+    // Edit campaign
+    async function editCampaign(campaignId) {
+        const campaign = campaigns.find(c => c.id === campaignId);
+        if (!campaign) return;
+
+        // Populate edit form
+        const form = document.getElementById('editCampaignForm');
+        if (form) {
+            form.elements['id'].value = campaign.id;
+            form.elements['title'].value = campaign.title;
+            form.elements['description'].value = campaign.description;
+            form.elements['budget'].value = campaign.budget;
+            form.elements['requirements'].value = campaign.requirements;
+            form.elements['start_date'].value = campaign.start_date;
+            form.elements['end_date'].value = campaign.end_date;
+            form.elements['status'].value = campaign.status;
+            
+            openModal('editCampaignModal');
+        }
+    }
+
+    // Update campaign
+    async function updateCampaign(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const campaignId = formData.get('id');
+        
+        const campaignData = {
+            title: formData.get('title'),
+            description: formData.get('description'),
+            budget: formData.get('budget'),
+            requirements: formData.get('requirements'),
+            start_date: formData.get('start_date'),
+            end_date: formData.get('end_date'),
+            status: formData.get('status')
+        };
+
+        try {
+            const response = await fetch(`php/business_api.php?endpoint=campaigns&id=${campaignId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(campaignData)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showToast('Campaign updated successfully');
+                closeModal('editCampaignModal');
+                loadCampaigns();
+            } else {
+                showToast(result.error || 'Failed to update campaign', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating campaign:', error);
+            showToast('Error updating campaign', 'error');
+        }
+    }
+
+    // Delete campaign
+    async function deleteCampaign(campaignId) {
+        if (!confirm('Are you sure you want to delete this campaign?')) return;
+
+        try {
+            const response = await fetch(`php/business_api.php?endpoint=campaigns&id=${campaignId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showToast('Campaign deleted successfully');
+                loadCampaigns();
+            } else {
+                showToast(result.error || 'Failed to delete campaign', 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting campaign:', error);
+            showToast('Error deleting campaign', 'error');
+        }
+    }
+
+    // Filter campaigns
+    function updateFilters() {
+        const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('searchInput');
+        
+        currentFilters = {
+            status: statusFilter.value,
+            search: searchInput.value
+        };
+        
+        loadCampaigns();
+    }
+
+    // Modal management
+    function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('show');
+        }
+    }
+
+    function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('show');
+        }
+    }
+
+    // Toast notifications
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => toast.classList.add('show'), 100);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCampaigns();
+        
+        // Add event listeners for filters
+        const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('searchInput');
+        
+        if (statusFilter) {
+            statusFilter.addEventListener('change', updateFilters);
+        }
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', debounce(updateFilters, 300));
+        }
+    });
+
+    // Utility function for debouncing
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
   </script>
+
+  <!-- Campaign Modals -->
+  <div id="createCampaignModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Create New Campaign</h2>
+        <button class="close-button" onclick="closeModal('createCampaignModal')">&times;</button>
+      </div>
+      <form id="createCampaignForm" onsubmit="createCampaign(event)">
+        <div class="form-group">
+          <label for="title">Campaign Title</label>
+          <input type="text" id="title" name="title" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" class="form-input" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="budget">Budget</label>
+          <input type="number" id="budget" name="budget" class="form-input" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="requirements">Requirements</label>
+          <textarea id="requirements" name="requirements" class="form-input"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="start_date">Start Date</label>
+          <input type="date" id="start_date" name="start_date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="end_date">End Date</label>
+          <input type="date" id="end_date" name="end_date" class="form-input" required>
+        </div>
+        <div class="button-group">
+          <button type="button" class="button" onclick="closeModal('createCampaignModal')">Cancel</button>
+          <button type="submit" class="button button-primary">Create Campaign</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editCampaignModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Edit Campaign</h2>
+        <button class="close-button" onclick="closeModal('editCampaignModal')">&times;</button>
+      </div>
+      <form id="editCampaignForm" onsubmit="updateCampaign(event)">
+        <input type="hidden" name="id">
+        <div class="form-group">
+          <label for="edit_title">Campaign Title</label>
+          <input type="text" id="edit_title" name="title" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_description">Description</label>
+          <textarea id="edit_description" name="description" class="form-input" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit_budget">Budget</label>
+          <input type="number" id="edit_budget" name="budget" class="form-input" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_requirements">Requirements</label>
+          <textarea id="edit_requirements" name="requirements" class="form-input"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="edit_start_date">Start Date</label>
+          <input type="date" id="edit_start_date" name="start_date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_end_date">End Date</label>
+          <input type="date" id="edit_end_date" name="end_date" class="form-input" required>
+        </div>
+        <div class="form-group">
+          <label for="edit_status">Status</label>
+          <select id="edit_status" name="status" class="form-input" required>
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="button-group">
+          <button type="button" class="button" onclick="closeModal('editCampaignModal')">Cancel</button>
+          <button type="submit" class="button button-primary">Update Campaign</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
