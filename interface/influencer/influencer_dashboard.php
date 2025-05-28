@@ -171,6 +171,11 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'influencer
         <a href="influencer_campaigns.php" class="nav-link">Campaigns</a>
         <a href="../chat/chat.php" class="nav-link">Messages</a>
         <a href="influencer_analytics.php" class="nav-link">Analytics</a>
+        <?php
+            $jwt = $_SESSION['jwt_token'] ?? '';
+        ?>
+
+        <a href="http://localhost/chat/public/?token=<?php echo urlencode($jwt) ?>" class="nav-link">Chat</a>
         <a href="influencer_profile.php" class="nav-link">Profile</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>

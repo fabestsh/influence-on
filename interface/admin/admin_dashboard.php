@@ -27,6 +27,11 @@ if (!isset($_SESSION['authenticated']) || $_SESSION['user_role'] !== 'admin' || 
         <a href="users.php" class="nav-link">Users</a>
         <a href="disputes.php" class="nav-link">Disputes</a>
         <a href="reports.php" class="nav-link">Reports</a>
+        <?php
+            $jwt = $_SESSION['jwt_token'] ?? '';
+        ?>
+
+        <a href="http://localhost/chat/public/?token=<?php echo urlencode($jwt) ?>" class="nav-link">Chat</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>

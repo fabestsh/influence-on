@@ -187,6 +187,12 @@
         <a href="influencers.php" class="nav-link">Influencers</a>
         <a href="analytics.php" class="nav-link">Analytics</a>
         <a href="../chat/chat.php" class="nav-link">Messages</a>
+        
+        <?php
+            $jwt = $_SESSION['jwt_token'] ?? '';
+        ?>
+
+        <a href="http://localhost/chat/public/?token=<?php echo urlencode($jwt) ?>" class="nav-link">Chat</a>
         <form method="POST" action="../../interface/auth/php/logout.php">
           <button type="submit" class="button button-primary">Logout</button>
         </form>
